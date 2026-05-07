@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamRoute - Все туры</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Подключаем иконки Font Awesome для нового дизайна -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+</head>
+<body>
+
+    <header class="page-header">
+        <nav>
+            <a href="index.html" class="logo">DreamRoute ✈</a>
+            <button class="nav-toggle" type="button" aria-label="Открыть меню" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+
+                <ul>
+                    <li><a href="tours.html">Все туры</a></li>
+                    <li><a href="about.html">О нас</a></li>
+                    <li><a href="contact.html">Контакты</a></li> <li><a href="#" id="profile-link">Профиль</a></li>
+                </ul>
+        </nav>
+        <h1>Найдите путешествие своей мечты</h1>
+    </header>
+
+    <main class="tours-page">
+        <!-- НОВАЯ ГОРИЗОНТАЛЬНАЯ ПАНЕЛЬ ФИЛЬТРОВ -->
+        <section class="filter-bar">
+            <div class="filter-group">
+                <label for="category-filter">Категория</label>
+                <select id="category-filter">
+                    <option value="all">Все</option>
+                    <option value="adventure">Приключения</option>
+                    <option value="city">Городской отдых</option>
+                    <option value="culture">Культурные поездки</option>
+                </select>
+            </div>
+            <div class="filter-group price-filter-group">
+                <label for="price-filter">Цена до: <span id="price-value">...</span>₽</label>
+                <input type="range" id="price-filter" min="0" max="1000000" step="1000" value="1000000">
+            </div>
+            <div class="filter-group">
+                <label for="sort-filter">Сортировать</label>
+                <select id="sort-filter">
+                    <option value="default">По умолчанию</option>
+                    <option value="price-asc">По возрастанию цены</option>
+                    <option value="price-desc">По убыванию цены</option>
+                </select>
+            </div>
+        </section>
+
+        <section id="tours-grid" class="tours-grid">
+            <!-- Карточки туров будут вставлены сюда с помощью JavaScript -->
+        </section>
+    </main>
+
+<!-- Модальное окно входа/регистрации -->
+<div id="auth-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        
+        <!-- Форма входа (видна по умолчанию) -->
+        <div id="login-view">
+            <h2>Вход в профиль</h2>
+            <form id="login-form">
+                <input type="email" placeholder="Ваш Email" required>
+                <input type="password" placeholder="Пароль" required>
+                <button type="submit">Войти</button>
+            </form>
+            <p class="auth-toggle">Еще нет аккаунта? <a href="#" id="show-register-view">Зарегистрироваться</a></p>
+        </div>
+
+        <!-- Форма регистрации (скрыта по умолчанию) -->
+        <div id="register-view" style="display: none;">
+            <h2>Создание аккаунта</h2>
+        <form id="register-form">
+            <input type="email" id="register-email" placeholder="Ваш Email" required>
+            <input type="password" id="register-password" placeholder="Придумайте пароль" required>
+            <input type="password" id="register-password-confirm" placeholder="Повторите пароль" required>
+            
+            <div class="policy-wrapper">
+                <input type="checkbox" id="policy-agree" required>
+                <label for="policy-agree">
+                    Я согласен с <a href="#">политикой конфиденциальности</a> и <a href="#">условиями использования</a>
+                </label>
+            </div>
+
+            <button type="submit">Зарегистрироваться</button>
+        </form>
+            <p class="auth-toggle">Уже есть аккаунт? <a href="#" id="show-login-view">Войти</a></p>
+        </div>
+    </div>
+</div>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-info">
+                <a href="index.html" class="logo">DreamRoute ✈</a>
+                <p>Ваш надежный проводник в мир незабываемых путешествий. Мы заботимся о каждой детали вашего отдыха.</p>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Навигация</h4>
+                <ul>
+                    <li><a href="tours.html">Все туры</a></li>
+                    <li><a href="about.html">О нас</a></li>
+                    <li><a href="contact.html">Контакты</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-contacts">
+                <h4>Контакты</h4>
+                <p><i class="fa-solid fa-phone"></i> +7 (900) 123-45-67</p>
+                <p><i class="fa-solid fa-envelope"></i> info@dreamroute.ru</p>
+                <div class="footer-socials">
+                    <a href="#"><i class="fa-brands fa-vk"></i></a>
+                    <a href="#"><i class="fa-brands fa-telegram"></i></a>
+                    <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2026 DreamRoute. Все права защищены. Путешествуйте с умом.</p>
+        </div>
+    </footer>
+
+    <!-- Модальное окно деталей тура -->
+    <div id="tour-details-modal" class="modal-overlay" style="display: none;"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

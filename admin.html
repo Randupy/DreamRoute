@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель управления | DreamRoute</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <style>
+        /* ── Стили модального окна редактирования ── */
+        .edit-modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.55);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .edit-modal-overlay.open { display: flex; }
+        .edit-modal-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 36px 40px;
+            width: 620px;
+            max-width: 95vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .edit-modal-box h3 { margin: 0 0 22px; font-size: 1.3rem; }
+        .edit-modal-box .close-edit {
+            position: absolute; top: 16px; right: 20px;
+            font-size: 1.6rem; cursor: pointer; color: #888;
+            border: none; background: none;
+        }
+        .edit-modal-box .close-edit:hover { color: #333; }
+
+        /* ── Кнопки действий в таблице ── */
+        .btn-action {
+            border: none; border-radius: 7px;
+            padding: 6px 12px; cursor: pointer;
+            font-size: .82rem; font-weight: 600;
+            transition: opacity .2s;
+        }
+        .btn-action:hover { opacity: .8; }
+        .btn-edit   { background: #e8f0fe; color: #1a73e8; }
+        .btn-hide   { background: #fef3c7; color: #b45309; }
+        .btn-show   { background: #d1fae5; color: #065f46; }
+        .btn-delete { background: #fee2e2; color: #dc2626; }
+
+        /* ── Бейдж «Скрыт» в таблице ── */
+        .badge-hidden { background: #fef3c7; color: #92400e; }
+        .badge-visible { background: #d1fae5; color: #065f46; }
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: .78rem; font-weight: 600; }
+
+        /* ── Уведомление (toast) ── */
+        #admin-toast {
+            position: fixed; bottom: 30px; right: 30px;
+            background: #1e293b; color: #fff;
+            padding: 14px 22px; border-radius: 10px;
+            font-size: .9rem; z-index: 99999;
+            opacity: 0; pointer-events: none;
+            transition: opacity .3s;
+        }
+        #admin-toast.show { opacity: 1; pointer-events: auto; }
+
+        /* ── Строка скрытого тура ── */
+        tr.tour-hidden td { opacity: .55; }
+
+        /* ── Опции тура ── */
+        .options-group { margin: 18px 0 4px; }
+        .option-row {
+            display: flex; gap: 10px; align-items: center; margin-bottom: 8px;
+        }
+        .option-row input[type="text"] {
+            flex: 2; padding: 9px 12px; border: 1.5px solid #e2e8f0;
+            border-radius: 8px; font-size: .9rem;
+        }
+        .option-row input[type="number"] {
+            flex: 1; padding: 9px 12px; border: 1.5px solid #e2e8f0;
+            border-radius: 8px; font-size: .9rem;
+        }
+        .option-row input:focus { outline: none; border-color: #6366f1; }
+        .btn-remove-option {
+            border: none; background: #fee2e2; color: #dc2626;
+            border-radius: 7px; padding: 8px 12px; cursor: pointer;
+            font-size: .85rem; flex-shrink: 0; transition: opacity .2s;
+        }
+        .btn-remove-option:hover { opacity: .75; }
+        .btn-add-option {
+            border: 1.5px dashed #a5b4fc; background: #eef2ff; color: #4f46e5;
+            border-radius: 8px; padding: 8px 16px; cursor: pointer;
+            font-size: .85rem; font-weight: 600; margin-top: 4px;
+            transition: background .2s;
+        }
+        .btn-add-option:hover { background: #e0e7ff; }
+        .option-hint { font-size:.78rem; color:#9ca3af; margin-bottom:8px; }
+
+        /* ── Карточки сообщений ── */
+        .message-card {
+            background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;
+            padding:20px 24px; margin-bottom:14px; position:relative;
+        }
+        .message-card .msg-email { font-weight:700; color:#4f46e5; font-size:.95rem; }
+        .message-card .msg-date  { font-size:.78rem; color:#94a3b8; margin-left:12px; }
+        .message-card .msg-text  { margin-top:10px; color:#1e293b; line-height:1.6; white-space:pre-wrap; }
+        .message-card .btn-del-msg {
+            position:absolute; top:14px; right:16px;
+            background:#fee2e2; color:#dc2626; border:none; border-radius:7px;
+            padding:6px 12px; cursor:pointer; font-size:.82rem; font-weight:600;
+        }
+        .message-card .btn-del-msg:hover { opacity:.8; }
+        .empty-state { text-align:center; color:#94a3b8; padding:40px; font-size:1rem; }
+
+        /* ── Статус-бейджи заказов ── */
+        .badge-new        { background:#dbeafe; color:#1d4ed8; }
+        .badge-processing { background:#fef3c7; color:#b45309; }
+        .badge-confirmed  { background:#d1fae5; color:#065f46; }
+        .badge-cancelled  { background:#fee2e2; color:#dc2626; }
+
+        /* ── Активная вкладка в сайдбаре ── */
+        .admin-nav a.active { background: rgba(255,255,255,.18); font-weight:700; }
+    </style>
+</head>
+<body class="admin-body">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <a href="index.html" class="logo">DreamRoute ✈</a>
+        <ul class="admin-nav">
+            <li><a href="#" class="active" id="nav-tours"><i class="fa-solid fa-gauge"></i> Дашборд</a></li>
+            <li><a href="#" id="nav-orders"><i class="fa-solid fa-bag-shopping"></i> Заказы</a></li>
+            <li><a href="#" id="nav-messages"><i class="fa-solid fa-envelope"></i> Сообщения</a></li>
+            <li><a href="tours.html"><i class="fa-solid fa-map-location-dot"></i> Все туры</a></li>
+            <li><a href="index.html"><i class="fa-solid fa-house"></i> На сайт</a></li>
+            <li><a href="#" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Выйти</a></li>
+        </ul>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="admin-main">
+        <header class="admin-header">
+            <h1>Управление турами</h1>
+            <div class="user-info">
+                <span>Администратор: <strong id="admin-email">...</strong></span>
+            </div>
+        </header>
+
+        <!-- Статистика -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fa-solid fa-route"></i></div>
+                <div><h3 id="stat-count">0</h3><p>Всего туров</p></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fa-solid fa-eye-slash"></i></div>
+                <div><h3 id="stat-hidden">0</h3><p>Скрыто туров</p></div>
+            </div>
+            <div class="stat-card" style="cursor:pointer;" onclick="showSection('orders')">
+                <div class="stat-icon" style="background:#fef3c7;color:#b45309;"><i class="fa-solid fa-bag-shopping"></i></div>
+                <div><h3 id="stat-orders">0</h3><p>Новых заказов</p></div>
+            </div>
+            <div class="stat-card" style="cursor:pointer;" onclick="showSection('messages')">
+                <div class="stat-icon" style="background:#ede9fe;color:#7c3aed;"><i class="fa-solid fa-envelope"></i></div>
+                <div><h3 id="stat-messages">0</h3><p>Сообщений</p></div>
+            </div>
+        </div>
+
+        <!-- ═══ РАЗДЕЛ: ТУРЫ ═══ -->
+        <div id="section-tours">
+
+        <!-- Форма добавления тура -->
+        <section class="admin-section">
+            <h2><i class="fa-solid fa-plus-circle"></i> Добавить новый тур</h2>
+            <form id="add-tour-form" class="admin-form">
+                <div class="form-grid">
+                    <input type="text"   id="t-name"     placeholder="Название тура" required>
+                    <input type="number" id="t-price"    placeholder="Цена (руб)" required>
+                    <select id="t-category">
+                        <option value="adventure">🏔 Приключения</option>
+                        <option value="city">🏙 Городской отдых</option>
+                        <option value="culture">🏛 Культура</option>
+                    </select>
+                    <input type="text"   id="t-duration" placeholder="Длительность (например: 7 дней)">
+                    <input type="text"   id="t-img"      class="full-width" placeholder="Ссылка на картинку (URL)">
+                    <textarea id="t-desc" class="full-width" placeholder="Описание тура..." rows="3"></textarea>
+                </div>
+                <div class="tags-group">
+                    <p style="margin-bottom:10px;font-weight:600;">Услуги, включенные в тур:</p>
+                    <label class="tag-checkbox"><input type="checkbox" name="tour-tags" value="flight"> ✈ Перелет</label>
+                    <label class="tag-checkbox"><input type="checkbox" name="tour-tags" value="hotel"> 🏨 Отель</label>
+                    <label class="tag-checkbox"><input type="checkbox" name="tour-tags" value="guide"> 🧑‍🏫 Гид</label>
+                    <label class="tag-checkbox"><input type="checkbox" name="tour-tags" value="gear">  🎒 Снаряжение</label>
+                </div>
+
+                <div class="options-group">
+                    <p style="margin-bottom:10px;font-weight:600;">Дополнительные опции <span style="font-weight:400;color:#888;font-size:.85rem;">(необязательно)</span></p>
+                    <div id="add-options-list"></div>
+                    <button type="button" class="btn-add-option" onclick="addOptionRow('add-options-list')">
+                        <i class="fa-solid fa-plus"></i> Добавить опцию
+                    </button>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:200px;padding:15px;">Опубликовать тур</button>
+            </form>
+        </section>
+
+        <!-- Таблица туров -->
+        <section class="admin-section">
+            <h2><i class="fa-solid fa-list"></i> Список туров в базе</h2>
+            <table class="admin-table" id="admin-tours-list">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Тур</th>
+                        <th>Цена</th>
+                        <th>Категория</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        </div><!-- /section-tours -->
+
+        <!-- ═══ РАЗДЕЛ: ЗАКАЗЫ ═══ -->
+        <div id="section-orders" style="display:none;">
+        <section class="admin-section">
+            <h2><i class="fa-solid fa-bag-shopping"></i> Заказы клиентов</h2>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center;">
+                <label style="font-weight:600;font-size:.9rem;">Фильтр по статусу:</label>
+                <select id="orders-filter" style="padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.88rem;" onchange="loadOrders()">
+                    <option value="">Все</option>
+                    <option value="new">🆕 Новые</option>
+                    <option value="processing">⚙️ В обработке</option>
+                    <option value="confirmed">✅ Подтверждён</option>
+                    <option value="cancelled">❌ Отменён</option>
+                </select>
+            </div>
+
+            <table class="admin-table" id="admin-orders-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Клиент</th>
+                        <th>Тур</th>
+                        <th>Сумма</th>
+                        <th>Дата</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+        </div><!-- /section-orders -->
+
+        <!-- ═══ РАЗДЕЛ: СООБЩЕНИЯ ═══ -->
+        <div id="section-messages" style="display:none;">
+        <section class="admin-section">
+            <h2><i class="fa-solid fa-envelope"></i> Сообщения с сайта</h2>
+            <div id="messages-list"></div>
+        </section>
+        </div><!-- /section-messages -->
+
+    </main>
+
+    <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ -->
+    <div class="edit-modal-overlay" id="edit-modal">
+        <div class="edit-modal-box">
+            <button class="close-edit" id="close-edit-modal">&times;</button>
+            <h3><i class="fa-solid fa-pen-to-square"></i> Редактировать тур</h3>
+            <form id="edit-tour-form" class="admin-form">
+                <input type="hidden" id="e-id">
+                <div class="form-grid">
+                    <input type="text"   id="e-name"     placeholder="Название тура" required>
+                    <input type="number" id="e-price"    placeholder="Цена (руб)" required>
+                    <select id="e-category">
+                        <option value="adventure">🏔 Приключения</option>
+                        <option value="city">🏙 Городской отдых</option>
+                        <option value="culture">🏛 Культура</option>
+                    </select>
+                    <input type="text"   id="e-duration" placeholder="Длительность">
+                    <input type="text"   id="e-img"      class="full-width" placeholder="Ссылка на картинку (URL)">
+                    <textarea id="e-desc" class="full-width" placeholder="Описание тура..." rows="3"></textarea>
+                </div>
+                <div class="tags-group">
+                    <p style="margin-bottom:10px;font-weight:600;">Услуги, включенные в тур:</p>
+                    <label class="tag-checkbox"><input type="checkbox" name="edit-tags" value="flight"> ✈ Перелет</label>
+                    <label class="tag-checkbox"><input type="checkbox" name="edit-tags" value="hotel"> 🏨 Отель</label>
+                    <label class="tag-checkbox"><input type="checkbox" name="edit-tags" value="guide"> 🧑‍🏫 Гид</label>
+                    <label class="tag-checkbox"><input type="checkbox" name="edit-tags" value="gear">  🎒 Снаряжение</label>
+                </div>
+
+                <div class="options-group">
+                    <p style="margin-bottom:10px;font-weight:600;">Дополнительные опции <span style="font-weight:400;color:#888;font-size:.85rem;">(необязательно)</span></p>
+                    <div id="edit-options-list"></div>
+                    <button type="button" class="btn-add-option" onclick="addOptionRow('edit-options-list')">
+                        <i class="fa-solid fa-plus"></i> Добавить опцию
+                    </button>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:180px;padding:13px;">
+                    <i class="fa-solid fa-floppy-disk"></i> Сохранить
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast-уведомление -->
+    <div id="admin-toast"></div>
+
+    <script>
+        // ── Проверка прав ──────────────────────────────────────────────────
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || user.role !== 'admin') {
+            alert('Доступ запрещен!');
+            window.location.href = 'index.html';
+        }
+        document.getElementById('admin-email').textContent = user.email;
+
+        // ── Toast ──────────────────────────────────────────────────────────
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('admin-toast');
+            t.textContent = msg;
+            t.style.background = isError ? '#dc2626' : '#16a34a';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ── Загрузка и рендер таблицы ──────────────────────────────────────
+        let allTours = [];
+        const categoryLabels = { adventure: '🏔 Приключения', city: '🏙 Городской', culture: '🏛 Культура' };
+
+        async function loadAdminTours() {
+            const res  = await fetch('api/tours.php?admin=1');
+            allTours   = await res.json();
+
+            document.getElementById('stat-count').textContent  = allTours.length;
+            document.getElementById('stat-hidden').textContent = allTours.filter(t => t.is_hidden).length;
+
+            const tbody = document.querySelector('#admin-tours-list tbody');
+            tbody.innerHTML = allTours.map(t => `
+                <tr id="row-${t.id}" class="${t.is_hidden ? 'tour-hidden' : ''}">
+                    <td>#${t.id}</td>
+                    <td><strong>${t.name}</strong></td>
+                    <td>${Number(t.price).toLocaleString('ru-RU')} ₽</td>
+                    <td><span class="badge">${categoryLabels[t.category] || t.category}</span></td>
+                    <td>
+                        <span class="badge ${t.is_hidden ? 'badge-hidden' : 'badge-visible'}">
+                            ${t.is_hidden ? '🙈 Скрыт' : '✅ Виден'}
+                        </span>
+                    </td>
+                    <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <button class="btn-action btn-edit"
+                                onclick="openEditModal(${t.id})">
+                            <i class="fa-solid fa-pen"></i> Изменить
+                        </button>
+                        <button class="btn-action ${t.is_hidden ? 'btn-show' : 'btn-hide'}"
+                                id="vis-btn-${t.id}"
+                                onclick="toggleVisibility(${t.id})">
+                            <i class="fa-solid fa-eye${t.is_hidden ? '' : '-slash'}"></i>
+                            ${t.is_hidden ? 'Показать' : 'Скрыть'}
+                        </button>
+                        <button class="btn-action btn-delete"
+                                onclick="deleteTour(${t.id}, '${t.name.replace(/'/g, "\\'")}')">
+                            <i class="fa-solid fa-trash"></i> Удалить
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        loadAdminTours();
+
+        // ── Добавление тура ────────────────────────────────────────────────
+        document.getElementById('add-tour-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const selectedIncludes = [...document.querySelectorAll('input[name="tour-tags"]:checked')].map(cb => cb.value);
+            const newTour = {
+                name:     document.getElementById('t-name').value,
+                price:    document.getElementById('t-price').value,
+                category: document.getElementById('t-category').value,
+                duration: document.getElementById('t-duration').value,
+                img:      document.getElementById('t-img').value,
+                desc:     document.getElementById('t-desc').value,
+                includes: selectedIncludes,
+                options:  collectOptions('add-options-list')
+            };
+            const res = await fetch('api/tours.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newTour)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Тур успешно добавлен!');
+                e.target.reset();
+                document.getElementById('add-options-list').innerHTML = '';
+                loadAdminTours();
+            } else {
+                showToast('Ошибка добавления', true);
+            }
+        });
+
+        // ── Скрыть / Показать тур ──────────────────────────────────────────
+        async function toggleVisibility(id) {
+            const res  = await fetch('api/tours.php', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.is_hidden ? 'Тур скрыт из каталога' : 'Тур снова виден в каталоге');
+                loadAdminTours();
+            } else {
+                showToast('Ошибка', true);
+            }
+        }
+
+        // ── Удалить тур ────────────────────────────────────────────────────
+        async function deleteTour(id, name) {
+            if (!confirm(`Удалить тур «${name}» из базы данных?\nЭто действие нельзя отменить.`)) return;
+            const res  = await fetch('api/tours.php', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(`Тур «${name}» удалён`);
+                loadAdminTours();
+            } else {
+                showToast('Ошибка удаления', true);
+            }
+        }
+
+        // ── Редактирование тура ────────────────────────────────────────────
+        function openEditModal(id) {
+            const tour = allTours.find(t => t.id == id);
+            if (!tour) return;
+
+            document.getElementById('e-id').value       = tour.id;
+            document.getElementById('e-name').value     = tour.name;
+            document.getElementById('e-price').value    = tour.price;
+            document.getElementById('e-category').value = tour.category;
+            document.getElementById('e-duration').value = tour.duration;
+            document.getElementById('e-img').value      = tour.image_url || '';
+            document.getElementById('e-desc').value     = tour.description || '';
+
+            // Чекбоксы услуг
+            const includes = Array.isArray(tour.includes) ? tour.includes : [];
+            document.querySelectorAll('input[name="edit-tags"]').forEach(cb => {
+                cb.checked = includes.includes(cb.value);
+            });
+
+            // Заполняем существующие опции
+            const optionsObj = typeof tour.options === 'string' ? JSON.parse(tour.options || '{}') : (tour.options || {});
+            fillOptions('edit-options-list', optionsObj);
+
+            document.getElementById('edit-modal').classList.add('open');
+        }
+
+        document.getElementById('close-edit-modal').addEventListener('click', () => {
+            document.getElementById('edit-modal').classList.remove('open');
+        });
+        document.getElementById('edit-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('edit-modal')) {
+                document.getElementById('edit-modal').classList.remove('open');
+            }
+        });
+
+        document.getElementById('edit-tour-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const selectedIncludes = [...document.querySelectorAll('input[name="edit-tags"]:checked')].map(cb => cb.value);
+            const updatedTour = {
+                id:       parseInt(document.getElementById('e-id').value),
+                name:     document.getElementById('e-name').value,
+                price:    document.getElementById('e-price').value,
+                category: document.getElementById('e-category').value,
+                duration: document.getElementById('e-duration').value,
+                img:      document.getElementById('e-img').value,
+                desc:     document.getElementById('e-desc').value,
+                includes: selectedIncludes,
+                options:  collectOptions('edit-options-list')
+            };
+            const res  = await fetch('api/tours.php', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedTour)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Изменения сохранены!');
+                document.getElementById('edit-modal').classList.remove('open');
+                loadAdminTours();
+            } else {
+                showToast('Ошибка сохранения', true);
+            }
+        });
+
+        // ── Опции: добавить строку ────────────────────────────────────────
+        function addOptionRow(containerId, name = '', price = '') {
+            const container = document.getElementById(containerId);
+            const row = document.createElement('div');
+            row.className = 'option-row';
+            row.innerHTML = `
+                <input type="text"   placeholder="Название опции (напр. Серфинг-урок)" value="${name}">
+                <input type="number" placeholder="Цена (₽)" min="0" value="${price}">
+                <button type="button" class="btn-remove-option" onclick="this.parentElement.remove()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+        // Собрать опции из контейнера в объект { "Название": цена }
+        function collectOptions(containerId) {
+            const options = {};
+            document.querySelectorAll(`#${containerId} .option-row`).forEach(row => {
+                const [nameInput, priceInput] = row.querySelectorAll('input');
+                const name  = nameInput.value.trim();
+                const price = Number(priceInput.value);
+                if (name && price > 0) options[name] = price;
+            });
+            return options;
+        }
+
+        // Заполнить опции в форму редактирования
+        function fillOptions(containerId, optionsObj) {
+            document.getElementById(containerId).innerHTML = '';
+            if (!optionsObj || typeof optionsObj !== 'object') return;
+            Object.entries(optionsObj).forEach(([name, price]) => {
+                addOptionRow(containerId, name, price);
+            });
+        }
+
+        // ── Выход ──────────────────────────────────────────────────────────
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        });
+
+        // ══════════════════════════════════════════════════════════════════
+        //  НАВИГАЦИЯ ПО РАЗДЕЛАМ
+        // ══════════════════════════════════════════════════════════════════
+        function showSection(name) {
+            ['tours', 'orders', 'messages'].forEach(s => {
+                document.getElementById('section-' + s).style.display = (s === name) ? '' : 'none';
+            });
+            document.querySelectorAll('.admin-nav a').forEach(a => a.classList.remove('active'));
+            const navEl = document.getElementById('nav-' + name);
+            if (navEl) navEl.classList.add('active');
+
+            const titles = { tours: 'Управление турами', orders: 'Заказы клиентов', messages: 'Сообщения с сайта' };
+            document.querySelector('.admin-header h1').textContent = titles[name] || 'Панель управления';
+        }
+
+        document.getElementById('nav-tours').addEventListener('click', e => { e.preventDefault(); showSection('tours'); });
+        document.getElementById('nav-orders').addEventListener('click', e => { e.preventDefault(); showSection('orders'); loadOrders(); });
+        document.getElementById('nav-messages').addEventListener('click', e => { e.preventDefault(); showSection('messages'); loadMessages(); });
+
+        // ══════════════════════════════════════════════════════════════════
+        //  ЗАКАЗЫ
+        // ══════════════════════════════════════════════════════════════════
+        const orderStatusLabels = {
+            new:        '🆕 Новый',
+            processing: '⚙️ В обработке',
+            confirmed:  '✅ Подтверждён',
+            cancelled:  '❌ Отменён'
+        };
+        const orderStatusBadges = {
+            new: 'badge-new', processing: 'badge-processing',
+            confirmed: 'badge-confirmed', cancelled: 'badge-cancelled'
+        };
+
+        async function loadOrders() {
+            const filter  = document.getElementById('orders-filter')?.value || '';
+            const url     = filter ? `api/orders.php?status=${filter}` : 'api/orders.php';
+            const res     = await fetch(url);
+            const orders  = await res.json();
+
+            // Обновить счётчик новых заказов на дашборде
+            if (!filter) {
+                document.getElementById('stat-orders').textContent = orders.filter(o => o.status === 'new').length;
+            }
+
+            const tbody = document.querySelector('#admin-orders-table tbody');
+            if (!orders.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Заказов пока нет</td></tr>';
+                return;
+            }
+            tbody.innerHTML = orders.map(o => {
+                const opts = Array.isArray(o.options_selected) && o.options_selected.length
+                    ? `<br><small style="color:#888">${o.options_selected.map(x => x.name || x).join(', ')}</small>` : '';
+                const date = new Date(o.created_at).toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+                return `<tr>
+                    <td>#${o.id}</td>
+                    <td><strong>${o.user_name || '—'}</strong><br><small style="color:#64748b">${o.user_email}</small></td>
+                    <td>${o.tour_name}${opts}</td>
+                    <td><strong>${Number(o.final_price).toLocaleString('ru-RU')} ₽</strong></td>
+                    <td>${date}</td>
+                    <td><span class="badge ${orderStatusBadges[o.status] || ''}">${orderStatusLabels[o.status] || o.status}</span></td>
+                    <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <select class="order-status-select" data-id="${o.id}" style="padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.82rem;">
+                            <option value="new"        ${o.status==='new'        ?'selected':''}>🆕 Новый</option>
+                            <option value="processing" ${o.status==='processing' ?'selected':''}>⚙️ В обработке</option>
+                            <option value="confirmed"  ${o.status==='confirmed'  ?'selected':''}>✅ Подтверждён</option>
+                            <option value="cancelled"  ${o.status==='cancelled'  ?'selected':''}>❌ Отменён</option>
+                        </select>
+                        <button class="btn-action btn-edit order-save-btn" data-id="${o.id}">Сохранить</button>
+                        <button class="btn-action btn-delete order-del-btn" data-id="${o.id}">Удалить</button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            // Делегирование: сохранить статус
+            tbody.querySelectorAll('.order-save-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id     = btn.dataset.id;
+                    const select = tbody.querySelector(`.order-status-select[data-id="${id}"]`);
+                    const res    = await fetch('api/orders.php', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: Number(id), status: select.value })
+                    });
+                    const data = await res.json();
+                    if (data.success) { showToast('Статус обновлён'); loadOrders(); }
+                    else showToast('Ошибка при обновлении', true);
+                });
+            });
+
+            // Делегирование: удалить заказ
+            tbody.querySelectorAll('.order-del-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!confirm('Удалить этот заказ?')) return;
+                    const res  = await fetch('api/orders.php', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: Number(btn.dataset.id) })
+                    });
+                    const data = await res.json();
+                    if (data.success) { showToast('Заказ удалён'); loadOrders(); }
+                    else showToast('Ошибка при удалении', true);
+                });
+            });
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+        //  СООБЩЕНИЯ
+        // ══════════════════════════════════════════════════════════════════
+        async function loadMessages() {
+            const res      = await fetch('api/feedback.php');
+            const messages = await res.json();
+
+            document.getElementById('stat-messages').textContent = messages.length;
+
+            const container = document.getElementById('messages-list');
+            if (!messages.length) {
+                container.innerHTML = '<p class="empty-state">Сообщений пока нет</p>';
+                return;
+            }
+            container.innerHTML = messages.map(m => {
+                const date = new Date(m.created_at).toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+                return `<div class="message-card" id="msg-${m.id}">
+                    <span class="msg-email">${m.user_email || 'Аноним'}</span>
+                    <span class="msg-date">${date}</span>
+                    <button class="btn-del-msg" data-id="${m.id}"><i class="fa-solid fa-trash"></i> Удалить</button>
+                    <p class="msg-text">${m.message.replace(/</g,'&lt;')}</p>
+                </div>`;
+            }).join('');
+
+            container.querySelectorAll('.btn-del-msg').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!confirm('Удалить это сообщение?')) return;
+                    const res  = await fetch('api/feedback.php', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: Number(btn.dataset.id) })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        document.getElementById('msg-' + btn.dataset.id)?.remove();
+                        showToast('Сообщение удалено');
+                        const remaining = container.querySelectorAll('.message-card').length;
+                        document.getElementById('stat-messages').textContent = remaining;
+                        if (!remaining) container.innerHTML = '<p class="empty-state">Сообщений пока нет</p>';
+                    } else showToast('Ошибка при удалении', true);
+                });
+            });
+        }
+
+        // Загружаем счётчики при старте
+        loadMessages();
+        loadOrders();
+    </script>
+</body>
+</html>

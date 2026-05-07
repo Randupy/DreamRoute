@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamRoute - Главная</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="hero-section">
+        <nav>
+            <a href="index.html" class="logo">DreamRoute ✈</a>
+            <button class="nav-toggle" type="button" aria-label="Открыть меню" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+
+            <ul>
+                <li><a href="tours.html">Все туры</a></li>
+                <li><a href="about.html">О нас</a></li>
+                <li><a href="contact.html">Контакты</a></li> <li><a href="#" id="profile-link">Профиль</a></li>
+            </ul>
+        </nav>
+        <div class="hero-text">
+            <h1>Откройте мир с DreamRoute</h1>
+            <p>ВАШЕ ПУТЕШЕСТВИЕ, НАША ЭКСПЕРТИЗА</p>
+        </div>
+
+        <!-- НОВЫЙ БЛОК ПОИСКА -->
+        <div class="hero-search-container">
+            <form class="hero-search-form" id="main-search-form">
+                <h3>Куда вы хотите отправиться?</h3>
+                <div class="search-wrapper">
+                    <input type="text" id="main-search-input" placeholder="Например, Италия или Альпы...">
+                    <button type="submit">Найти</button>
+                </div>
+            </form>
+
+            <div id="search-results-preview" class="search-results-preview"></div>
+            
+            <div id="more-tours-link" style="display: none; margin-top: 20px;">
+                <a href="tours.html" class="btn-secondary">Посмотреть все предложения</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- НОВЫЙ ДИЗАЙН КАТЕГОРИЙ -->
+        <section class="categories-section">
+            <a href="tours.html?category=adventure" class="category-card" style="background-image: url('https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg');">
+                <div class="card-content">
+                    <h3>Приключения</h3>
+                    <p>Покоряйте вершины и исследуйте дикую природу</p>
+                </div>
+            </a>
+            <a href="tours.html?category=city" class="category-card" style="background-image: url('https://images.pexels.com/photos/169647/pexels-photo-169647.jpeg');">
+                <div class="card-content">
+                    <h3>Городской отдых</h3>
+                    <p>Откройте для себя ритм великих мегаполисов</p>
+                </div>
+            </a>
+            <a href="tours.html?category=culture" class="category-card" style="background-image: url('https://images.pexels.com/photos/161255/pexels-photo-161255.jpeg');">
+                <div class="card-content">
+                    <h3>Культурные поездки</h3>
+                    <p>Погрузитесь в историю и традиции разных народов</p>
+                </div>
+            </a>
+        </section>
+
+        <!-- НОВЫЙ БЛОК "ПОЧЕМУ МЫ?" -->
+        <section class="why-choose-us-section">
+            <div class="why-us-container">
+                <div class="why-us-image">
+                    <img src="https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="Путешествия">
+                </div>
+                <div class="why-us-content">
+                    <span class="upper-title">Наши ценности</span>
+                    <h2>Мы создаем путешествия, <br>а не просто продаем туры</h2>
+                    <p class="why-us-subtitle">Выбирая DreamRoute, вы доверяете свой отдых профессионалам с многолетним стажем.</p>
+                    
+                    <div class="reasons-list">
+                        <div class="reason-item">
+                            <div class="reason-number">01</div>
+                            <div class="reason-text">
+                                <h4>Экспертиза и Опыт</h4>
+                                <p>Личный опыт посещения более 50 стран позволяет нам планировать маршруты любой сложности.</p>
+                            </div>
+                        </div>
+                        <div class="reason-item">
+                            <div class="reason-number">02</div>
+                            <div class="reason-text">
+                                <h4>Индивидуальный подход</h4>
+                                <p>Каждый тур адаптируется под ваши предпочтения: от выбора отеля до наполнения экскурсионной программы.</p>
+                            </div>
+                        </div>
+                        <div class="reason-item">
+                            <div class="reason-number">03</div>
+                            <div class="reason-text">
+                                <h4>Поддержка 24/7</h4>
+                                <p>Ваш персональный менеджер остается на связи в течение всего путешествия в любом часовом поясе.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="testimonials">
+            <div class="container">
+                <div class="section-header-center">
+                    <span class="subtitle">Отзывы</span>
+                    <h2>Что говорят наши путешественники</h2>
+                </div>
+                
+                <div class="testimonials-grid">
+                    <div class="testimonial-item">
+                        <div class="quote-icon">“</div>
+                        <p class="testimonial-text">DreamRoute организовали для нас свадебное путешествие в Италию. Всё было безупречно: от трансфера до маленьких семейных ресторанчиков, о которых не знают обычные туристы.</p>
+                        <div class="testimonial-author">
+                            <div class="author-info">
+                                <h4>Анна Кузнецова</h4>
+                                <span>Тур «Римские каникулы»</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-item">
+                        <div class="quote-icon">“</div>
+                        <p class="testimonial-text">Никогда не думал, что поход в горы может быть таким комфортным. Гиды — настоящие фанаты своего дела. Теперь за приключениями только с вами!</p>
+                        <div class="testimonial-author">
+                            <div class="author-info">
+                                <h4>Игорь Степанов</h4>
+                                <span>Тур «Вершины Алтая»</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-item">
+                        <div class="quote-icon">“</div>
+                        <p class="testimonial-text">Спасибо за культурный тур по Японии. Программа была настолько насыщенной и продуманной, что мы влюбились в эту страну навсегда.</p>
+                        <div class="testimonial-author">
+                            <div class="author-info">
+                                <h4>Елена Вагнер</h4>
+                                <span>Тур «Дух Киото»</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+
+    </main>
+
+    <!-- Модальное окно входа/регистрации -->
+    <div id="auth-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            
+            <!-- Форма входа (видна по умолчанию) -->
+            <div id="login-view">
+                <h2>Вход в профиль</h2>
+                <form id="login-form">
+                    <input type="email" placeholder="Ваш Email" required>
+                    <input type="password" placeholder="Пароль" required>
+                    <button type="submit">Войти</button>
+                </form>
+                <p class="auth-toggle">Еще нет аккаунта? <a href="#" id="show-register-view">Зарегистрироваться</a></p>
+            </div>
+
+            <!-- Форма регистрации (скрыта по умолчанию) -->
+            <div id="register-view" style="display: none;">
+                <h2>Создание аккаунта</h2>
+            <form id="register-form">
+                <input type="email" id="register-email" placeholder="Ваш Email" required>
+                <input type="password" id="register-password" placeholder="Придумайте пароль" required>
+                <input type="password" id="register-password-confirm" placeholder="Повторите пароль" required>
+                
+                <div class="policy-wrapper">
+                    <input type="checkbox" id="policy-agree" required>
+                    <label for="policy-agree">
+                        Я согласен с <a href="#">политикой конфиденциальности</a> и <a href="#">условиями использования</a>
+                    </label>
+                </div>
+
+                <button type="submit">Зарегистрироваться</button>
+            </form>
+                <p class="auth-toggle">Уже есть аккаунт? <a href="#" id="show-login-view">Войти</a></p>
+            </div>
+        </div>
+    </div>
+
+        <footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-info">
+            <a href="index.html" class="logo">DreamRoute ✈</a>
+            <p>Ваш надежный проводник в мир незабываемых путешествий. Мы заботимся о каждой детали вашего отдыха.</p>
+        </div>
+        
+        <div class="footer-links">
+            <h4>Навигация</h4>
+            <ul>
+                <li><a href="tours.html">Все туры</a></li>
+                <li><a href="about.html">О нас</a></li>
+                <li><a href="contact.html">Контакты</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-contacts">
+            <h4>Контакты</h4>
+            <p><i class="fa-solid fa-phone"></i> +7 (900) 123-45-67</p>
+            <p><i class="fa-solid fa-envelope"></i> info@dreamroute.ru</p>
+            <div class="footer-socials">
+                <a href="#"><i class="fa-brands fa-vk"></i></a>
+                <a href="#"><i class="fa-brands fa-telegram"></i></a>
+                <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer-bottom">
+        <p>&copy; 2026 DreamRoute. Все права защищены. Путешествуйте с умом.</p>
+    </div>
+    </footer>
+
+    <!-- Модальное окно деталей тура -->
+    <div id="tour-details-modal" class="modal-overlay" style="display: none;"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
